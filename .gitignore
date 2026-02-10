@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Claude Code
+.claude/
+
+# Flutter build artifacts (covered by tapwater/.gitignore too, but explicit here for root-level git init)
+tapwater/build/
+tapwater/.dart_tool/
+tapwater/.flutter-plugins-dependencies
+
+# iOS generated files with local machine paths
+tapwater/ios/Flutter/Generated.xcconfig
+tapwater/ios/Flutter/flutter_export_environment.sh
+tapwater/ios/Flutter/ephemeral/
+tapwater/ios/Pods/
+
+# IDE
+.idea/
+*.iml
+.vscode/
