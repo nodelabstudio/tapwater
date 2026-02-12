@@ -29,6 +29,11 @@
                                         <fontDescription key="fontDescription" style="UICTFontTextStyleTitle1" type="boldSystem" pointSize="24"/>
                                         <color key="textColor" red="0.08627450980392157" green="0.39607843137254902" blue="0.75294117647058822" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                     </label>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Hydration Tracker" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-02">
+                                        <rect key="frame" x="0.0" y="130" width="200" height="18"/>
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleSubheadline" type="system" pointSize="14"/>
+                                        <color key="textColor" red="0.4" green="0.4" blue="0.4" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                    </label>
                                 </subviews>
                             </stackView>
                         </subviews>

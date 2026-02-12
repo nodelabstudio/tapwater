@@ -1,4 +1,4 @@
-# TapWater - Project Checklist
+# TapWater - Hydration Tracker — Project Checklist
 
 ## App Store Submission Checklist
 

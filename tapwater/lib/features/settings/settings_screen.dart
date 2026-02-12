@@ -142,7 +142,7 @@ class SettingsScreen extends ConsumerWidget {
                 final build = snapshot.data?.buildNumber ?? '';
                 return ListTile(
                   leading: const Icon(Icons.info_outline),
-                  title: const Text('TapWater'),
+                  title: const Text('TapWater - Hydration Tracker'),
                   subtitle: Text('Version $version ($build)'),
                   onLongPress: () {
                     assert(() {

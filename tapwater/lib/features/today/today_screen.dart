@@ -24,7 +24,7 @@ class TodayScreen extends ConsumerWidget {
         '${totalMl.displayAmount(unit)} / ${goalMl.displayAmount(unit)}';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('TapWater')),
+      appBar: AppBar(title: const Text('TapWater - Hydration Tracker')),
       body: SingleChildScrollView(
         child: Column(
           children: [

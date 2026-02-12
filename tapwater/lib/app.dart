@@ -18,7 +18,7 @@ class TapWaterApp extends ConsumerWidget {
     final accentColor = ref.watch(accentColorProvider);
     ref.watch(widgetUpdateProvider);
     return MaterialApp.router(
-      title: 'TapWater',
+      title: 'TapWater - Hydration Tracker',
       debugShowCheckedModeBanner: false,
       scaffoldMessengerKey: rootScaffoldMessengerKey,
       theme: AppTheme.lightFrom(accentColor),

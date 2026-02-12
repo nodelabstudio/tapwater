@@ -1,4 +1,4 @@
-# TapWater - App Store Summary & Release Notes
+# TapWater - Hydration Tracker — App Store Summary & Release Notes
 
 ## App Description (Short)
 
