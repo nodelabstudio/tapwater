@@ -42,23 +42,23 @@
 | Feature | Status | Notes |
 |---------|--------|-------|
 | Multi-beverage tracking | DONE | 8 default types, gated in favorites + drink picker |
-| Custom drink types | NOT STARTED | DB infrastructure exists, NO creation UI |
+| Custom drink types | DONE | Create/edit/delete via custom_drink_sheet.dart, "+" in favorites bar |
 | Edit & delete entries | DONE | entry_edit_sheet.dart with full editing |
 | Backdate entries | DONE | Date picker in entry edit sheet |
 | Full history access | DONE | Calendar + bubble view + daily entries |
 | Shift worker day boundary | DONE | Settings > Day Boundary (0-6 hours) |
 | Home screen widgets | DONE | Included in free (listed as Pro on paywall) |
-| Apple Watch app | NOT STARTED | Only enum entry exists |
+| Apple Watch app | DEFERRED | Deferred to v1.1, removed from paywall |
 
 ## Feature Status: INSIGHTS Tier ($1.99/mo)
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Trend analytics & charts | PARTIAL | Weekly bar chart exists, no deeper analytics |
-| Daily tags & notes | NOT STARTED | DB table + DAO exist, NO UI |
-| CSV export | NOT STARTED | No code exists |
-| HealthKit sync | NOT STARTED | No code exists |
-| Custom themes | PARTIAL | Only Light/Dark/System, no custom colors |
+| Trend analytics & charts | DONE | Weekly bar chart + streaks + averages + pie chart breakdown |
+| Daily tags & notes | DONE | Add/remove tags on Today screen, gated by canUseTags |
+| CSV export | DONE | Date range picker, share via share_plus, Settings > Data |
+| HealthKit sync | DONE | Write water intake to Apple Health, toggle in Settings |
+| Custom themes | DONE | 10 preset accent colors, gated by Insights tier |
 
 ---
 
@@ -75,22 +75,19 @@
 | App icon | DONE | flutter_launcher_icons generated |
 | Widget extension | DONE | Small + Medium iOS widgets |
 | Entitlements (App Groups) | DONE | Both Runner + Widget targets |
+| HealthKit entitlement | DONE | Info.plist usage descriptions added |
 
 ---
 
 ## Known Issues
 
-- Amount field in drink picker shows raw ml (250) instead of display units when imperial
-- Paywall lists "Apple Watch app" but no watch app exists
-- Paywall lists features not yet implemented (CSV, HealthKit, tags, custom themes)
-- Consider removing unimplemented features from paywall until they ship
+- Amount field in drink picker: FIXED (converts ml to display units for imperial)
+- Apple Watch not implemented: DEFERRED to v1.1, removed from paywall
 
 ---
 
-## Decision Needed
+## Deferred to v1.1
 
-**Option A:** Ship v1.0 with current features, remove unimplemented items from paywall
-**Option B:** Implement remaining features before shipping
-
-Unimplemented Pro features: Custom drink types, Apple Watch
-Unimplemented Insights features: Tags UI, CSV export, HealthKit, custom color themes
+- Apple Watch app
+- Additional chart types (monthly trends, year-over-year)
+- Social sharing / achievements

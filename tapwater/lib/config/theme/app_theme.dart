@@ -10,9 +10,12 @@ class AppTheme {
     borderRadius: BorderRadius.circular(_buttonRadius),
   );
 
-  static ThemeData get light {
+  static ThemeData get light => lightFrom(AppColors.primary);
+  static ThemeData get dark => darkFrom(AppColors.primary);
+
+  static ThemeData lightFrom(Color seedColor) {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.primary,
+      seedColor: seedColor,
       brightness: Brightness.light,
       surface: AppColors.surfaceLight,
     );
@@ -63,9 +66,9 @@ class AppTheme {
     );
   }
 
-  static ThemeData get dark {
+  static ThemeData darkFrom(Color seedColor) {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.primary,
+      seedColor: seedColor,
       brightness: Brightness.dark,
       surface: AppColors.surfaceDark,
     );

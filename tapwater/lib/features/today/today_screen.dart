@@ -5,6 +5,7 @@ import 'package:tapwater/core/providers/daily_goal_providers.dart';
 import 'package:tapwater/core/providers/drink_entry_providers.dart';
 import 'package:tapwater/core/providers/settings_providers.dart';
 import 'package:tapwater/shared/extensions/amount_extensions.dart';
+import 'widgets/daily_tags_section.dart';
 import 'widgets/favorites_bar.dart';
 import 'widgets/milestone_message.dart';
 import 'widgets/progress_ring.dart';
@@ -38,6 +39,8 @@ class TodayScreen extends ConsumerWidget {
             const QuickAddButton(),
             const SizedBox(height: 24),
             const FavoritesBar(),
+            const SizedBox(height: 16),
+            const DailyTagsSection(),
             const SizedBox(height: 16),
             const RecentEntriesList(),
             const SizedBox(height: 32),

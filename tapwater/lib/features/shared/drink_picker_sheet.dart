@@ -6,6 +6,7 @@ import 'package:tapwater/core/database/app_database.dart';
 import 'package:tapwater/core/models/enums.dart';
 import 'package:tapwater/core/providers/database_provider.dart';
 import 'package:tapwater/core/providers/drink_type_providers.dart';
+import 'package:tapwater/core/providers/health_providers.dart';
 import 'package:tapwater/core/providers/purchase_providers.dart';
 import 'package:tapwater/core/providers/settings_providers.dart';
 import 'package:tapwater/shared/extensions/amount_extensions.dart';
@@ -41,9 +42,22 @@ class _DrinkPickerContentState extends ConsumerState<_DrinkPickerContent> {
   void initState() {
     super.initState();
     _selectedType = widget.preselectedType;
-    _amountController = TextEditingController(
-      text: (widget.preselectedType?.defaultAmountMl ?? 250).toString(),
-    );
+    _amountController = TextEditingController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_amountController.text.isEmpty) {
+      final defaultMl = widget.preselectedType?.defaultAmountMl ?? 250;
+      final unit = ref.read(unitSystemProvider);
+      _amountController.text = _displayAmount(defaultMl, unit).toString();
+    }
+  }
+
+  int _displayAmount(int ml, UnitSystem unit) {
+    if (unit == UnitSystem.imperial) return ml.toOz().round();
+    return ml;
   }
 
   @override
@@ -120,7 +134,8 @@ class _DrinkPickerContentState extends ConsumerState<_DrinkPickerContent> {
                       }
                       setState(() {
                         _selectedType = type;
-                        _amountController.text = type.defaultAmountMl.toString();
+                        _amountController.text =
+                            _displayAmount(type.defaultAmountMl, unit).toString();
                       });
                     },
                   );
@@ -183,12 +198,17 @@ class _DrinkPickerContentState extends ConsumerState<_DrinkPickerContent> {
     }
 
     HapticFeedback.mediumImpact();
+    final now = DateTime.now();
     final db = ref.read(databaseProvider);
     await db.drinkEntryDao.insertEntry(DrinkEntriesCompanion.insert(
       drinkTypeId: type.id,
       amountMl: amountMl,
-      createdAt: DateTime.now(),
+      createdAt: now,
     ));
+
+    // Sync to HealthKit if enabled
+    final healthEnabled = ref.read(healthKitEnabledProvider);
+    syncToHealthKit(enabled: healthEnabled, amountMl: amountMl, timestamp: now);
 
     if (mounted) Navigator.pop(context);
   }

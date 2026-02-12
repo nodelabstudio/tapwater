@@ -5,6 +5,7 @@ import 'package:tapwater/core/services/preferences_service.dart';
 import 'package:tapwater/features/history/history_screen.dart';
 import 'package:tapwater/features/onboarding/onboarding_screen.dart';
 import 'package:tapwater/features/paywall/paywall_screen.dart';
+import 'package:tapwater/features/settings/export_screen.dart';
 import 'package:tapwater/features/settings/settings_screen.dart';
 import 'package:tapwater/features/today/today_screen.dart';
 import 'package:tapwater/shared/widgets/main_shell.dart';
@@ -35,6 +36,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/paywall',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const PaywallScreen(),
+      ),
+      GoRoute(
+        path: '/export',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ExportScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

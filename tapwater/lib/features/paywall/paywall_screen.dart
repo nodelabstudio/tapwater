@@ -78,7 +78,6 @@ class _PaywallScreenState extends ConsumerState<PaywallScreen> {
                 'Full history access',
                 'Shift worker day boundary',
                 'Home screen widgets',
-                'Apple Watch app',
               ],
             ),
             const SizedBox(height: 16),

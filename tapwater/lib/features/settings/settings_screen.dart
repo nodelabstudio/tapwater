@@ -10,7 +10,9 @@ import 'package:tapwater/core/providers/daily_goal_providers.dart';
 import 'package:tapwater/core/providers/database_provider.dart';
 import 'package:tapwater/core/providers/drink_entry_providers.dart';
 import 'package:tapwater/core/providers/purchase_providers.dart';
+import 'package:tapwater/core/providers/health_providers.dart';
 import 'package:tapwater/core/providers/settings_providers.dart';
+import 'package:tapwater/core/services/health_service.dart';
 import 'package:tapwater/core/services/notification_service.dart';
 import 'package:tapwater/core/services/preferences_service.dart';
 import 'package:tapwater/shared/extensions/amount_extensions.dart';
@@ -63,6 +65,23 @@ class SettingsScreen extends ConsumerWidget {
               onTap: () => _changeThemeMode(context, ref),
             ),
 
+            // Accent Color (Insights)
+            ListTile(
+              leading: const Icon(Icons.palette_outlined),
+              title: const Text('Accent Color'),
+              subtitle: Text(_currentAccentName(ref.watch(accentColorProvider))),
+              trailing: purchaseState.canUseAnalytics
+                  ? const Icon(Icons.chevron_right)
+                  : const Icon(Icons.lock_outline, size: 18),
+              onTap: () {
+                if (purchaseState.canUseAnalytics) {
+                  _changeAccentColor(context, ref);
+                } else {
+                  context.push('/paywall');
+                }
+              },
+            ),
+
             // Day Boundary (Pro)
             ListTile(
               leading: const Icon(Icons.schedule),
@@ -81,6 +100,9 @@ class SettingsScreen extends ConsumerWidget {
                 }
               },
             ),
+
+            // HealthKit (Insights)
+            _HealthKitTile(),
             const Divider(),
 
             // Subscription
@@ -122,6 +144,12 @@ class SettingsScreen extends ConsumerWidget {
                   leading: const Icon(Icons.info_outline),
                   title: const Text('TapWater'),
                   subtitle: Text('Version $version ($build)'),
+                  onLongPress: () {
+                    assert(() {
+                      _showDebugTierPicker(context, ref);
+                      return true;
+                    }());
+                  },
                 );
               },
             ),
@@ -149,8 +177,23 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const Divider(),
 
-            // Danger Zone
+            // Data
             _SectionHeader('Data'),
+            ListTile(
+              leading: const Icon(Icons.download),
+              title: const Text('Export Data (CSV)'),
+              subtitle: const Text('Download your drink history'),
+              trailing: purchaseState.canExport
+                  ? const Icon(Icons.chevron_right)
+                  : const Icon(Icons.lock_outline, size: 18),
+              onTap: () {
+                if (purchaseState.canExport) {
+                  context.push('/export');
+                } else {
+                  context.push('/paywall');
+                }
+              },
+            ),
             ListTile(
               leading: Icon(Icons.delete_forever,
                   color: Theme.of(context).colorScheme.error),
@@ -166,6 +209,49 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   static const double _mlPerOz = 29.5735;
+
+  String _currentAccentName(Color current) {
+    for (final theme in accentThemes) {
+      if (theme.color.toARGB32() == current.toARGB32()) return theme.name;
+    }
+    return 'Custom';
+  }
+
+  Future<void> _changeAccentColor(BuildContext context, WidgetRef ref) async {
+    final current = ref.read(accentColorProvider);
+    final result = await showDialog<Color>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: const Text('Accent Color'),
+        children: accentThemes.map((theme) {
+          final isSelected = theme.color.toARGB32() == current.toARGB32();
+          return ListTile(
+            leading: Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: theme.color,
+                shape: BoxShape.circle,
+                border: isSelected
+                    ? Border.all(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        width: 3)
+                    : null,
+              ),
+            ),
+            title: Text(theme.name),
+            trailing: isSelected ? const Icon(Icons.check) : null,
+            onTap: () => Navigator.pop(context, theme.color),
+          );
+        }).toList(),
+      ),
+    );
+    if (result != null) {
+      ref.read(accentColorProvider.notifier).state = result;
+      final prefs = ref.read(sharedPreferencesProvider);
+      await setAccentColor(prefs, result);
+    }
+  }
 
   String _themeModeLabel(ThemeMode mode) {
     return switch (mode) {
@@ -199,6 +285,29 @@ class SettingsScreen extends ConsumerWidget {
       final prefs = ref.read(sharedPreferencesProvider);
       await setThemeMode(prefs, result);
     }
+  }
+
+  void _showDebugTierPicker(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: const Text('Debug: Set Purchase Tier'),
+        children: PurchaseTier.values.map((tier) {
+          final current = ref.read(purchaseProvider).tier;
+          return ListTile(
+            title: Text(tier.name.toUpperCase()),
+            leading: Icon(
+              tier == current ? Icons.radio_button_checked : Icons.radio_button_off,
+              color: tier == current ? Theme.of(context).colorScheme.primary : null,
+            ),
+            onTap: () {
+              ref.read(purchaseProvider.notifier).setTier(tier);
+              Navigator.pop(context);
+            },
+          );
+        }).toList(),
+      ),
+    );
   }
 
   Future<void> _rateApp() async {
@@ -365,6 +474,40 @@ class SettingsScreen extends ConsumerWidget {
       ref.invalidate(todayTotalMlProvider);
       ref.invalidate(weeklyTotalsProvider);
     }
+  }
+}
+
+class _HealthKitTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final purchaseState = ref.watch(purchaseProvider);
+    final healthEnabled = ref.watch(healthKitEnabledProvider);
+
+    if (!purchaseState.canUseAnalytics) {
+      return ListTile(
+        leading: const Icon(Icons.favorite_outline),
+        title: const Text('Apple Health Sync'),
+        subtitle: const Text('Sync water intake to Health app'),
+        trailing: const Icon(Icons.lock_outline, size: 18),
+        onTap: () => context.push('/paywall'),
+      );
+    }
+
+    return SwitchListTile(
+      secondary: const Icon(Icons.favorite_outline),
+      title: const Text('Apple Health Sync'),
+      subtitle: Text(healthEnabled ? 'Syncing water intake' : 'Off'),
+      value: healthEnabled,
+      onChanged: (v) async {
+        if (v) {
+          final granted = await HealthService.requestPermission();
+          if (!granted) return;
+        }
+        ref.read(healthKitEnabledProvider.notifier).state = v;
+        final prefs = ref.read(sharedPreferencesProvider);
+        await setHealthKitEnabled(prefs, v);
+      },
+    );
   }
 }
 

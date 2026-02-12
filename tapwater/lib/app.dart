@@ -15,13 +15,14 @@ class TapWaterApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeModeProvider);
+    final accentColor = ref.watch(accentColorProvider);
     ref.watch(widgetUpdateProvider);
     return MaterialApp.router(
       title: 'TapWater',
       debugShowCheckedModeBanner: false,
       scaffoldMessengerKey: rootScaffoldMessengerKey,
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
+      theme: AppTheme.lightFrom(accentColor),
+      darkTheme: AppTheme.darkFrom(accentColor),
       themeMode: themeMode,
       routerConfig: router,
     );

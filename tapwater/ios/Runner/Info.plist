@@ -40,5 +40,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSHealthShareUsageDescription</key>
+	<string>TapWater reads your water intake data to stay in sync with Apple Health.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>TapWater writes your water intake to Apple Health so you can track hydration across all your health apps.</string>
 </dict>
 </plist>

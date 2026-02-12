@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'widgets/bubble_calendar.dart';
 import 'widgets/calendar_strip.dart';
 import 'widgets/daily_entries_list.dart';
+import 'widgets/insights_analytics.dart';
 import 'widgets/weekly_bar_chart.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -41,6 +42,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   ),
                   SizedBox(height: 8),
                   WeeklyBarChart(),
+                  SizedBox(height: 24),
+                  InsightsAnalytics(),
                   SizedBox(height: 24),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),

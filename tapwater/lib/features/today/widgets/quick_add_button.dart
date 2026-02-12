@@ -5,6 +5,7 @@ import 'package:tapwater/app.dart';
 import 'package:tapwater/config/theme/app_colors.dart';
 import 'package:tapwater/core/database/app_database.dart';
 import 'package:tapwater/core/providers/database_provider.dart';
+import 'package:tapwater/core/providers/health_providers.dart';
 import 'package:tapwater/core/providers/settings_providers.dart';
 import 'package:tapwater/shared/extensions/amount_extensions.dart';
 
@@ -51,11 +52,16 @@ class QuickAddButton extends ConsumerWidget {
     final db = ref.read(databaseProvider);
     final unit = ref.read(unitSystemProvider);
     final displayLabel = 250.displayAmount(unit);
+    final now = DateTime.now();
     final entryId = await db.drinkEntryDao.insertEntry(DrinkEntriesCompanion.insert(
       drinkTypeId: 1, // Water
       amountMl: 250,
-      createdAt: DateTime.now(),
+      createdAt: now,
     ));
+
+    // Sync to HealthKit if enabled
+    final healthEnabled = ref.read(healthKitEnabledProvider);
+    syncToHealthKit(enabled: healthEnabled, amountMl: 250, timestamp: now);
 
     if (!context.mounted) return;
     final messenger = rootScaffoldMessengerKey.currentState;
