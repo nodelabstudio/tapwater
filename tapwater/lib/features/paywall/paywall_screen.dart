@@ -1,14 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:tapwater/core/models/enums.dart';
 import 'package:tapwater/core/providers/purchase_providers.dart';
+import 'package:tapwater/core/services/purchase_service.dart';
 import 'widgets/tier_card.dart';
 
-class PaywallScreen extends ConsumerWidget {
+class PaywallScreen extends ConsumerStatefulWidget {
   const PaywallScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PaywallScreen> createState() => _PaywallScreenState();
+}
+
+class _PaywallScreenState extends ConsumerState<PaywallScreen> {
+  List<Package> _packages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOfferings();
+  }
+
+  Future<void> _loadOfferings() async {
+    final packages = await PurchaseService().getOfferings();
+    if (mounted) setState(() => _packages = packages);
+  }
+
+  Package? _findPackage(String identifier) {
+    try {
+      return _packages.firstWhere((p) => p.identifier == identifier);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final purchaseState = ref.watch(purchaseProvider);
 
     return Scaffold(
@@ -41,7 +69,7 @@ class PaywallScreen extends ConsumerWidget {
               isActive: purchaseState.tier == PurchaseTier.pro ||
                   purchaseState.tier == PurchaseTier.insights,
               isLoading: purchaseState.isLoading,
-              onPurchase: () => _purchasePro(ref),
+              onPurchase: () => _purchasePro(),
               features: const [
                 'Multi-beverage tracking',
                 'Custom drink types',
@@ -63,7 +91,7 @@ class PaywallScreen extends ConsumerWidget {
               isActive: purchaseState.tier == PurchaseTier.insights,
               isLoading: purchaseState.isLoading,
               isDisabled: purchaseState.tier == PurchaseTier.free,
-              onPurchase: () => _purchaseInsights(context, ref),
+              onPurchase: () => _purchaseInsights(),
               features: const [
                 'Everything in Pro',
                 'Trend analytics & charts',
@@ -74,7 +102,6 @@ class PaywallScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 24),
-            // No thanks button - clear and obvious
             Center(
               child: TextButton(
                 onPressed: () => Navigator.pop(context),
@@ -82,7 +109,6 @@ class PaywallScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 8),
-            // Restore purchases
             Center(
               child: TextButton(
                 onPressed: () => ref.read(purchaseProvider.notifier).restore(),
@@ -96,14 +122,23 @@ class PaywallScreen extends ConsumerWidget {
     );
   }
 
-  void _purchasePro(WidgetRef ref) {
-    // In production, this would fetch the package from RevenueCat offerings
-    // and call purchaseService.purchase(package)
-    // For now, this is a placeholder
-    ref.read(purchaseProvider.notifier).refresh();
+  Future<void> _purchasePro() async {
+    // Try RevenueCat identifiers: \$rc_lifetime, pro_lifetime, or pro
+    final package = _findPackage('\$rc_lifetime') ??
+        _findPackage('pro_lifetime') ??
+        _findPackage('pro');
+    if (package == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Purchase not available. Please try again later.')),
+        );
+      }
+      return;
+    }
+    await ref.read(purchaseProvider.notifier).purchase(package);
   }
 
-  void _purchaseInsights(BuildContext context, WidgetRef ref) {
+  Future<void> _purchaseInsights() async {
     final tier = ref.read(purchaseProvider).tier;
     if (tier == PurchaseTier.free) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -114,6 +149,17 @@ class PaywallScreen extends ConsumerWidget {
       );
       return;
     }
-    ref.read(purchaseProvider.notifier).refresh();
+    final package = _findPackage('\$rc_monthly') ??
+        _findPackage('insights_monthly') ??
+        _findPackage('insights');
+    if (package == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Subscription not available. Please try again later.')),
+        );
+      }
+      return;
+    }
+    await ref.read(purchaseProvider.notifier).purchase(package);
   }
 }

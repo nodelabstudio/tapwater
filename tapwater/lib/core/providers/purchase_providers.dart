@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import '../models/enums.dart';
 import '../models/purchase_state.dart';
 import '../services/purchase_service.dart';
@@ -22,6 +23,13 @@ class PurchaseNotifier extends StateNotifier<PurchaseState> {
 
   void setTier(PurchaseTier tier) {
     state = state.copyWith(tier: tier);
+  }
+
+  Future<PurchaseTier> purchase(Package package) async {
+    state = state.copyWith(isLoading: true);
+    final tier = await PurchaseService().purchase(package);
+    state = state.copyWith(tier: tier, isLoading: false);
+    return tier;
   }
 
   Future<void> restore() async {

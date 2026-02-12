@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:tapwater/core/database/app_database.dart';
 import 'package:tapwater/core/models/enums.dart';
 import 'package:tapwater/core/providers/database_provider.dart';
 import 'package:tapwater/core/providers/drink_type_providers.dart';
+import 'package:tapwater/core/providers/purchase_providers.dart';
 import 'package:tapwater/core/providers/settings_providers.dart';
 import 'package:tapwater/shared/extensions/amount_extensions.dart';
 
@@ -86,25 +88,45 @@ class _DrinkPickerContentState extends ConsumerState<_DrinkPickerContent> {
           drinkTypes.when(
             loading: () => const CircularProgressIndicator(),
             error: (e, st) => const Text('Error loading drink types'),
-            data: (types) => Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: types.map((type) {
-                final selected = _selectedType?.id == type.id;
-                final color = Color(int.parse(type.colorHex, radix: 16));
-                return ChoiceChip(
-                  label: Text('${type.icon} ${type.name}'),
-                  selected: selected,
-                  selectedColor: color.withValues(alpha: 0.2),
-                  onSelected: (_) {
-                    setState(() {
-                      _selectedType = type;
-                      _amountController.text = type.defaultAmountMl.toString();
-                    });
-                  },
-                );
-              }).toList(),
-            ),
+            data: (types) {
+              final canUseNonWater = ref.watch(purchaseProvider).canUseNonWaterFavorites;
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: types.map((type) {
+                  final isWater = type.id == 1;
+                  final locked = !isWater && !canUseNonWater;
+                  final selected = _selectedType?.id == type.id;
+                  final color = Color(int.parse(type.colorHex, radix: 16));
+                  return ChoiceChip(
+                    label: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('${type.icon} ${type.name}'),
+                        if (locked) ...[
+                          const SizedBox(width: 4),
+                          Icon(Icons.lock_outline, size: 14,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        ],
+                      ],
+                    ),
+                    selected: selected,
+                    selectedColor: color.withValues(alpha: 0.2),
+                    onSelected: (_) {
+                      if (locked) {
+                        Navigator.pop(context);
+                        context.push('/paywall');
+                        return;
+                      }
+                      setState(() {
+                        _selectedType = type;
+                        _amountController.text = type.defaultAmountMl.toString();
+                      });
+                    },
+                  );
+                }).toList(),
+              );
+            },
           ),
           const SizedBox(height: 20),
           // Amount input

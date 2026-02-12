@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:in_app_review/in_app_review.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:tapwater/core/database/app_database.dart';
 import 'package:tapwater/core/models/enums.dart';
 import 'package:go_router/go_router.dart';
@@ -10,7 +12,9 @@ import 'package:tapwater/core/providers/drink_entry_providers.dart';
 import 'package:tapwater/core/providers/purchase_providers.dart';
 import 'package:tapwater/core/providers/settings_providers.dart';
 import 'package:tapwater/core/services/notification_service.dart';
+import 'package:tapwater/core/services/preferences_service.dart';
 import 'package:tapwater/shared/extensions/amount_extensions.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -40,7 +44,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const Divider(),
 
-            // Units
+            // Preferences
             _SectionHeader('Preferences'),
             ListTile(
               leading: const Icon(Icons.straighten),
@@ -48,6 +52,15 @@ class SettingsScreen extends ConsumerWidget {
               subtitle: Text(unit.label),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _toggleUnits(ref, s),
+            ),
+
+            // Appearance
+            ListTile(
+              leading: const Icon(Icons.brightness_6),
+              title: const Text('Appearance'),
+              subtitle: Text(_themeModeLabel(ref.watch(themeModeProvider))),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _changeThemeMode(context, ref),
             ),
 
             // Day Boundary (Pro)
@@ -100,15 +113,39 @@ class SettingsScreen extends ConsumerWidget {
 
             // About
             _SectionHeader('About'),
+            FutureBuilder<PackageInfo>(
+              future: PackageInfo.fromPlatform(),
+              builder: (context, snapshot) {
+                final version = snapshot.data?.version ?? '...';
+                final build = snapshot.data?.buildNumber ?? '';
+                return ListTile(
+                  leading: const Icon(Icons.info_outline),
+                  title: const Text('TapWater'),
+                  subtitle: Text('Version $version ($build)'),
+                );
+              },
+            ),
             ListTile(
-              leading: const Icon(Icons.info_outline),
-              title: const Text('TapWater'),
-              subtitle: const Text('Version 1.0.0'),
+              leading: const Icon(Icons.star_rate_outlined),
+              title: const Text('Rate TapWater'),
+              onTap: () => _rateApp(),
             ),
             ListTile(
               leading: const Icon(Icons.email_outlined),
               title: const Text('Contact Support'),
               subtitle: const Text('tapwater@use.startmail.com'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.privacy_tip_outlined),
+              title: const Text('Privacy Policy'),
+              trailing: const Icon(Icons.open_in_new, size: 18),
+              onTap: () => _openUrl('https://tapwater.app/privacy'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.description_outlined),
+              title: const Text('Terms of Service'),
+              trailing: const Icon(Icons.open_in_new, size: 18),
+              onTap: () => _openUrl('https://tapwater.app/terms'),
             ),
             const Divider(),
 
@@ -129,6 +166,56 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   static const double _mlPerOz = 29.5735;
+
+  String _themeModeLabel(ThemeMode mode) {
+    return switch (mode) {
+      ThemeMode.light => 'Light',
+      ThemeMode.dark => 'Dark',
+      ThemeMode.system => 'System',
+    };
+  }
+
+  Future<void> _changeThemeMode(BuildContext context, WidgetRef ref) async {
+    final current = ref.read(themeModeProvider);
+    final result = await showDialog<ThemeMode>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: const Text('Appearance'),
+        children: [
+          for (final mode in ThemeMode.values)
+            ListTile(
+              title: Text(_themeModeLabel(mode)),
+              leading: Icon(
+                mode == current ? Icons.radio_button_checked : Icons.radio_button_off,
+                color: mode == current ? Theme.of(context).colorScheme.primary : null,
+              ),
+              onTap: () => Navigator.pop(context, mode),
+            ),
+        ],
+      ),
+    );
+    if (result != null) {
+      ref.read(themeModeProvider.notifier).state = result;
+      final prefs = ref.read(sharedPreferencesProvider);
+      await setThemeMode(prefs, result);
+    }
+  }
+
+  Future<void> _rateApp() async {
+    final inAppReview = InAppReview.instance;
+    if (await inAppReview.isAvailable()) {
+      await inAppReview.requestReview();
+    } else {
+      await inAppReview.openStoreListing(appStoreId: ''); // Set App Store ID after first submission
+    }
+  }
+
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
 
   Future<void> _editGoal(BuildContext context, WidgetRef ref, int currentMl) async {
     final unit = ref.read(unitSystemProvider);

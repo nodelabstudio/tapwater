@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tapwater/app.dart';
 import 'package:tapwater/config/theme/app_colors.dart';
 import 'package:tapwater/core/database/app_database.dart';
 import 'package:tapwater/core/providers/database_provider.dart';
@@ -57,13 +58,15 @@ class QuickAddButton extends ConsumerWidget {
     ));
 
     if (!context.mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
+    final messenger = rootScaffoldMessengerKey.currentState;
+    if (messenger == null) return;
     messenger.clearSnackBars();
     messenger.showSnackBar(
       SnackBar(
         content: Text('Added $displayLabel of Water'),
         behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 3),
+        duration: const Duration(seconds: 5),
+        showCloseIcon: true,
         action: SnackBarAction(
           label: 'Undo',
           onPressed: () {
@@ -72,5 +75,10 @@ class QuickAddButton extends ConsumerWidget {
         ),
       ),
     );
+    // Force dismiss after 5s — Flutter skips auto-dismiss when
+    // accessibleNavigation is true and an action is present.
+    Future.delayed(const Duration(seconds: 5), () {
+      rootScaffoldMessengerKey.currentState?.hideCurrentSnackBar();
+    });
   }
 }
