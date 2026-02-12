@@ -315,7 +315,7 @@ class SettingsScreen extends ConsumerWidget {
     if (await inAppReview.isAvailable()) {
       await inAppReview.requestReview();
     } else {
-      await inAppReview.openStoreListing(appStoreId: ''); // Set App Store ID after first submission
+      await inAppReview.openStoreListing(appStoreId: '6759095460');
     }
   }
 

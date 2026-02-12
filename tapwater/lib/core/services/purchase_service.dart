@@ -4,7 +4,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 import '../models/enums.dart';
 
 class PurchaseService {
-  static const _apiKey = 'YOUR_REVENUECAT_API_KEY'; // Replace before release
+  static const _apiKey = 'appl_FaYnlLDlLZOwnTzCSFyGvDUooUL';
 
   static final PurchaseService _instance = PurchaseService._();
   factory PurchaseService() => _instance;
@@ -13,10 +13,7 @@ class PurchaseService {
   bool _initialized = false;
 
   Future<void> init() async {
-    if (_initialized || _apiKey == 'YOUR_REVENUECAT_API_KEY') {
-      debugPrint('PurchaseService: Skipping init (no API key set)');
-      return;
-    }
+    if (_initialized) return;
     await Purchases.configure(PurchasesConfiguration(_apiKey));
     _initialized = true;
   }

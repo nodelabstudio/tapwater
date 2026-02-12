@@ -9,9 +9,10 @@
       - Support: https://nodelabstudio.github.io/tapwater/support.html
 - [x] Update app with real Privacy Policy / Terms URLs
 - [ ] Create app in App Store Connect
-- [ ] Set up RevenueCat account + products
-- [ ] Paste RevenueCat API key into purchase_service.dart
-- [ ] Set App Store ID in settings_screen.dart _rateApp() method
+- [x] Set up RevenueCat account + app created
+- [ ] Create products, entitlements, and offerings in RevenueCat
+- [x] Paste RevenueCat API key into purchase_service.dart (appl_FaYn...)
+- [x] Set App Store ID in settings_screen.dart _rateApp() (6759095460)
 - [ ] Add HealthKit capability to Runner target in Xcode
 - [ ] Prepare App Store screenshots (5.5" + 6.7")
 - [ ] Write App Store description + keywords (draft in APP_STORE_NOTES.md)
@@ -72,7 +73,7 @@
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| RevenueCat integration | DONE (code) | API key placeholder - needs real key |
+| RevenueCat integration | DONE | API key set, products/entitlements/offerings TBD in dashboard |
 | Purchase flow (paywall) | DONE | Fetches offerings + calls purchase() |
 | Paywall gating logic | DONE | PurchaseTier enum with gate checks |
 | Drift database | DONE | All tables, DAOs, migrations |
