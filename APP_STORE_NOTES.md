@@ -53,6 +53,13 @@ Initial release! Track your water and beverage intake with:
 - 10 accent color themes
 - Light, Dark, and System appearance modes
 
+## Links
+
+- **Privacy Policy:** https://nodelabstudio.github.io/tapwater/privacy-policy.html
+- **Terms of Service:** https://nodelabstudio.github.io/tapwater/terms.html
+- **Support:** https://nodelabstudio.github.io/tapwater/support.html
+- **Website:** https://nodelabstudio.github.io/tapwater/
+
 ## Technical Details
 
 - **Platform:** iOS 17.0+

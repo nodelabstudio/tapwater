@@ -167,13 +167,13 @@ class SettingsScreen extends ConsumerWidget {
               leading: const Icon(Icons.privacy_tip_outlined),
               title: const Text('Privacy Policy'),
               trailing: const Icon(Icons.open_in_new, size: 18),
-              onTap: () => _openUrl('https://tapwater.app/privacy'),
+              onTap: () => _openUrl('https://nodelabstudio.github.io/tapwater/privacy-policy.html'),
             ),
             ListTile(
               leading: const Icon(Icons.description_outlined),
               title: const Text('Terms of Service'),
               trailing: const Icon(Icons.open_in_new, size: 18),
-              onTap: () => _openUrl('https://tapwater.app/terms'),
+              onTap: () => _openUrl('https://nodelabstudio.github.io/tapwater/terms.html'),
             ),
             const Divider(),
 

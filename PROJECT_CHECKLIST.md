@@ -2,13 +2,19 @@
 
 ## App Store Submission Checklist
 
-- [ ] Host docs on GitHub Pages (privacy, terms, support)
-- [ ] Update app with real Privacy Policy / Terms URLs
+- [x] Host docs on GitHub Pages (privacy, terms, support)
+      - Site: https://nodelabstudio.github.io/tapwater/
+      - Privacy: https://nodelabstudio.github.io/tapwater/privacy-policy.html
+      - Terms: https://nodelabstudio.github.io/tapwater/terms.html
+      - Support: https://nodelabstudio.github.io/tapwater/support.html
+- [x] Update app with real Privacy Policy / Terms URLs
 - [ ] Create app in App Store Connect
 - [ ] Set up RevenueCat account + products
 - [ ] Paste RevenueCat API key into purchase_service.dart
+- [ ] Set App Store ID in settings_screen.dart _rateApp() method
+- [ ] Add HealthKit capability to Runner target in Xcode
 - [ ] Prepare App Store screenshots (5.5" + 6.7")
-- [ ] Write App Store description + keywords
+- [ ] Write App Store description + keywords (draft in APP_STORE_NOTES.md)
 - [ ] Archive & upload build from Xcode
 - [ ] Submit for review
 
@@ -32,8 +38,8 @@
 | Privacy manifest | DONE | PrivacyInfo.xcprivacy created |
 | Rate app prompt | DONE | in_app_review in Settings |
 | Dynamic version display | DONE | package_info_plus in Settings |
-| Privacy Policy link | DONE | URL placeholder - needs real URL |
-| Terms of Service link | DONE | URL placeholder - needs real URL |
+| Privacy Policy link | DONE | https://nodelabstudio.github.io/tapwater/privacy-policy.html |
+| Terms of Service link | DONE | https://nodelabstudio.github.io/tapwater/terms.html |
 | Snackbar auto-dismiss | DONE | Manual Future.delayed fix |
 | Delete All Data | DONE | Settings > Data |
 
