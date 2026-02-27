@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:tapwater/core/models/enums.dart';
 import 'package:tapwater/core/providers/daily_goal_providers.dart';
 import 'package:tapwater/core/providers/database_provider.dart';
+import 'package:tapwater/core/providers/drink_entry_providers.dart';
 import 'package:tapwater/core/providers/drink_type_providers.dart';
 import 'package:tapwater/core/providers/purchase_providers.dart';
 import 'package:tapwater/core/providers/settings_providers.dart';
@@ -43,6 +44,7 @@ class _BeverageBreakdown {
 }
 
 final _analyticsDataProvider = FutureProvider<_AnalyticsData>((ref) async {
+  ref.watch(todayEntriesProvider);
   final db = ref.watch(databaseProvider);
   final goalMl = ref.watch(goalMlProvider);
   final dayBoundary = ref.watch(dayBoundaryHourProvider);

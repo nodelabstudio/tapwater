@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tapwater/config/theme/app_colors.dart';
-import 'package:tapwater/core/providers/database_provider.dart';
 import 'package:tapwater/core/providers/daily_goal_providers.dart';
+import 'package:tapwater/core/providers/database_provider.dart';
+import 'package:tapwater/core/providers/drink_entry_providers.dart';
 import 'package:tapwater/core/providers/settings_providers.dart';
 import 'package:tapwater/shared/extensions/date_extensions.dart';
 
 /// A provider that fetches daily totals for the entire year, keyed by date string.
 final yearlyTotalsProvider =
     FutureProvider.family<Map<String, int>, int>((ref, year) async {
+  ref.watch(todayEntriesProvider);
   final db = ref.watch(databaseProvider);
   final dayBoundary = ref.watch(dayBoundaryHourProvider);
   final start = DateTime(year, 1, 1).startOfDay(dayBoundaryHour: dayBoundary);

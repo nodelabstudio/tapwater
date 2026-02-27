@@ -1,0 +1,128 @@
+default_platform(:ios)
+
+def csv_or_array(option, fallback)
+  return fallback if option.nil?
+  return option if option.is_a?(Array)
+
+  option.to_s.split(",").map(&:strip).reject(&:empty?)
+end
+
+def env_csv_or_nil(key)
+  v = ENV[key]
+  return nil if v.nil?
+  v = v.to_s.strip
+  return nil if v.empty?
+  v
+end
+
+def truthy?(value)
+  return false if value.nil?
+  return value if value == true || value == false
+
+  %w[1 true yes y on].include?(value.to_s.strip.downcase)
+end
+
+def build_snapshot_options(options = {})
+  tier = options[:tier]&.to_s&.strip&.downcase
+  fast_mode = if options.key?(:fast_mode)
+    truthy?(options[:fast_mode])
+  else
+    truthy?(ENV.fetch("FASTLANE_SCREENSHOT_FAST", "1"))
+  end
+  headless_mode = if options.key?(:headless)
+    truthy?(options[:headless])
+  else
+    truthy?(ENV.fetch("FASTLANE_SCREENSHOT_HEADLESS", "0"))
+  end
+  concurrent_mode = if options.key?(:concurrent_simulators)
+    truthy?(options[:concurrent_simulators])
+  else
+    truthy?(ENV.fetch("FASTLANE_SCREENSHOT_CONCURRENT", "0"))
+  end
+
+  launch_arguments = csv_or_array(options[:launch_arguments], [])
+
+  if tier && !tier.empty?
+    launch_arguments += ["-tapwater_screenshot_tier", tier]
+  end
+
+  output_directory =
+    options[:output_directory] ||
+    (tier && !tier.empty? ? "fastlane/screenshots/#{tier}" : "fastlane/screenshots")
+
+  {
+    workspace: options[:workspace] || "ios/Runner.xcworkspace",
+    scheme: options[:scheme] || "Runner",
+        devices: csv_or_array(
+      options[:devices] || env_csv_or_nil("DEVICES"),
+      ["iPhone 16 Pro Max", "iPhone 12 Pro", "iPad Pro 13-inch (M5)"]
+    ),
+    languages: csv_or_array(
+      options[:languages] || env_csv_or_nil("LANGUAGES"),
+      ["en-US", "es-419", "pt-BR", "ja-JP", "ko-KR", "zh-Hans", "zh-Hant", "hi", "ar"]
+    ),
+    launch_arguments: launch_arguments,
+    output_directory: output_directory,
+    clear_previous_screenshots: true,
+    clean: fast_mode ? false : true,
+    reinstall_app: fast_mode ? false : true,
+    skip_open_summary: true,
+    erase_simulator: false,
+    test_without_building: false,
+    headless: headless_mode,
+    concurrent_simulators: concurrent_mode
+  }
+end
+
+platform :ios do
+  desc "Capture App Store screenshots (works with AppScreens Fastlane import/export)"
+  lane :screenshots do |options|
+    snapshot(**build_snapshot_options(options))
+  end
+
+  desc "Capture screenshots for Free tier"
+  lane :screenshots_free do |options|
+    snapshot(**build_snapshot_options(options.merge(tier: "free")))
+  end
+
+  desc "Capture screenshots for Pro tier"
+  lane :screenshots_pro do |options|
+    snapshot(**build_snapshot_options(options.merge(tier: "pro")))
+  end
+
+  desc "Capture screenshots for Insights tier"
+  lane :screenshots_insights do |options|
+    snapshot(**build_snapshot_options(options.merge(tier: "insights")))
+  end
+
+  desc "Capture screenshots in fast mode (no clean/reinstall)"
+  lane :screenshots_fast do |options|
+    snapshot(**build_snapshot_options(options.merge(fast_mode: true)))
+  end
+
+  desc "Capture screenshots for Free tier in fast mode"
+  lane :screenshots_free_fast do |options|
+    snapshot(**build_snapshot_options(options.merge(tier: "free", fast_mode: true)))
+  end
+
+  desc "Capture screenshots for Pro tier in fast mode"
+  lane :screenshots_pro_fast do |options|
+    snapshot(**build_snapshot_options(options.merge(tier: "pro", fast_mode: true)))
+  end
+
+  desc "Capture screenshots for Insights tier in fast mode"
+  lane :screenshots_insights_fast do |options|
+    snapshot(**build_snapshot_options(options.merge(tier: "insights", fast_mode: true)))
+  end
+
+  desc "Upload screenshots and build metadata with deliver"
+  lane :upload_screenshots do
+    deliver(
+      skip_binary_upload: true,
+      skip_metadata: true,
+      skip_app_version_update: true,
+      overwrite_screenshots: true,
+      force: true
+    )
+  end
+end

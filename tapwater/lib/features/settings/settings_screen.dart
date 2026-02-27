@@ -1,8 +1,10 @@
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:tapwater/core/database/app_database.dart';
 import 'package:tapwater/core/models/enums.dart';
 import 'package:go_router/go_router.dart';
@@ -144,15 +146,10 @@ class SettingsScreen extends ConsumerWidget {
                   leading: const Icon(Icons.info_outline),
                   title: const Text('TapWater - Hydration Tracker'),
                   subtitle: Text('Version $version ($build)'),
-                  onLongPress: () {
-                    assert(() {
-                      _showDebugTierPicker(context, ref);
-                      return true;
-                    }());
-                  },
                 );
               },
             ),
+            const _UserIdTile(),
             ListTile(
               leading: const Icon(Icons.star_rate_outlined),
               title: const Text('Rate TapWater'),
@@ -162,6 +159,7 @@ class SettingsScreen extends ConsumerWidget {
               leading: const Icon(Icons.email_outlined),
               title: const Text('Contact Support'),
               subtitle: const Text('tapwater@use.startmail.com'),
+              onTap: () => _contactSupport(context),
             ),
             ListTile(
               leading: const Icon(Icons.privacy_tip_outlined),
@@ -287,29 +285,6 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
-  void _showDebugTierPicker(BuildContext context, WidgetRef ref) {
-    showDialog(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: const Text('Debug: Set Purchase Tier'),
-        children: PurchaseTier.values.map((tier) {
-          final current = ref.read(purchaseProvider).tier;
-          return ListTile(
-            title: Text(tier.name.toUpperCase()),
-            leading: Icon(
-              tier == current ? Icons.radio_button_checked : Icons.radio_button_off,
-              color: tier == current ? Theme.of(context).colorScheme.primary : null,
-            ),
-            onTap: () {
-              ref.read(purchaseProvider.notifier).setTier(tier);
-              Navigator.pop(context);
-            },
-          );
-        }).toList(),
-      ),
-    );
-  }
-
   Future<void> _rateApp() async {
     final inAppReview = InAppReview.instance;
     if (await inAppReview.isAvailable()) {
@@ -323,6 +298,27 @@ class SettingsScreen extends ConsumerWidget {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Future<void> _contactSupport(BuildContext context) async {
+    final uri = Uri(
+      scheme: 'mailto',
+      path: 'tapwater@use.startmail.com',
+      queryParameters: {
+        'subject': 'TapWater Support Request',
+      },
+    );
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+      return;
+    }
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No email app is available on this device.')),
+      );
     }
   }
 
@@ -501,11 +497,57 @@ class _HealthKitTile extends ConsumerWidget {
       onChanged: (v) async {
         if (v) {
           final granted = await HealthService.requestPermission();
-          if (!granted) return;
+          if (!granted) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                      'Apple Health permission was not granted. Open Health > Sharing > Apps > TapWater and allow writing Water.'),
+                  behavior: SnackBarBehavior.floating,
+                  duration: Duration(seconds: 4),
+                ),
+              );
+            }
+            return;
+          }
         }
         ref.read(healthKitEnabledProvider.notifier).state = v;
         final prefs = ref.read(sharedPreferencesProvider);
         await setHealthKitEnabled(prefs, v);
+      },
+    );
+  }
+}
+
+class _UserIdTile extends StatelessWidget {
+  const _UserIdTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<String>(
+      future: Purchases.appUserID,
+      builder: (context, snapshot) {
+        final userId = snapshot.data ?? '...';
+        final display = userId.length > 20
+            ? '${userId.substring(0, 10)}...${userId.substring(userId.length - 6)}'
+            : userId;
+        return ListTile(
+          leading: const Icon(Icons.fingerprint),
+          title: const Text('Support ID'),
+          subtitle: Text(display, style: const TextStyle(fontSize: 12)),
+          trailing: const Icon(Icons.copy, size: 18),
+          onTap: () {
+            if (snapshot.data == null) return;
+            Clipboard.setData(ClipboardData(text: userId));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Support ID copied to clipboard'),
+                behavior: SnackBarBehavior.floating,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          },
+        );
       },
     );
   }

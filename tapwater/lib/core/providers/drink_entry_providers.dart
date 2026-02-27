@@ -42,6 +42,7 @@ final totalMlForDateProvider =
 
 final weeklyTotalsProvider =
     FutureProvider<List<MapEntry<DateTime, int>>>((ref) async {
+  ref.watch(todayEntriesProvider);
   final db = ref.watch(databaseProvider);
   final dayBoundary = ref.watch(dayBoundaryHourProvider);
   final now = DateTime.now();

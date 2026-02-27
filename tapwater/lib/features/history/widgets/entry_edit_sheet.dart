@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:tapwater/core/database/app_database.dart';
 import 'package:tapwater/core/models/enums.dart';
 import 'package:tapwater/core/providers/database_provider.dart';
+import 'package:tapwater/core/providers/drink_entry_providers.dart';
 import 'package:tapwater/core/providers/drink_type_providers.dart';
 import 'package:tapwater/core/providers/settings_providers.dart';
 import 'package:tapwater/shared/extensions/amount_extensions.dart';
@@ -37,11 +38,25 @@ class _EntryEditContentState extends ConsumerState<_EntryEditContent> {
   @override
   void initState() {
     super.initState();
-    _amountController = TextEditingController(
-      text: widget.entry.amountMl.toString(),
-    );
+    // Controller text is set in didChangeDependencies after ref is available
+    _amountController = TextEditingController();
     _selectedTime = widget.entry.createdAt;
     _selectedTypeId = widget.entry.drinkTypeId;
+  }
+
+  bool _didInitAmount = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_didInitAmount) {
+      _didInitAmount = true;
+      final unit = ref.read(unitSystemProvider);
+      final displayValue = unit == UnitSystem.imperial
+          ? widget.entry.amountMl.toOz().round()
+          : widget.entry.amountMl;
+      _amountController.text = displayValue.toString();
+    }
   }
 
   @override
@@ -55,7 +70,7 @@ class _EntryEditContentState extends ConsumerState<_EntryEditContent> {
     final drinkTypes = ref.watch(drinkTypesProvider);
     final unit = ref.watch(unitSystemProvider);
 
-    return Padding(
+    return SingleChildScrollView(
       padding: EdgeInsets.only(
         left: 24,
         right: 24,
@@ -206,6 +221,10 @@ class _EntryEditContentState extends ConsumerState<_EntryEditContent> {
       widget.entry.id,
     );
 
+    ref.invalidate(weeklyTotalsProvider);
+    ref.invalidate(todayTotalMlProvider);
+    ref.invalidate(todayEntriesProvider);
+
     if (mounted) Navigator.pop(context);
   }
 
@@ -234,6 +253,9 @@ class _EntryEditContentState extends ConsumerState<_EntryEditContent> {
     if (confirmed == true) {
       final db = ref.read(databaseProvider);
       await db.drinkEntryDao.deleteEntry(widget.entry.id);
+      ref.invalidate(weeklyTotalsProvider);
+      ref.invalidate(todayTotalMlProvider);
+      ref.invalidate(todayEntriesProvider);
       if (mounted) Navigator.pop(context);
     }
   }

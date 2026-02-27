@@ -1,0 +1,14 @@
+workspace("ios/Runner.xcworkspace")
+scheme("Runner")
+
+devices(["iPhone 16 Pro Max", "iPhone 12 Pro", "iPad Pro 13-inch (M5)"])
+
+languages([
+  "en-US"
+])
+
+output_directory("fastlane/screenshots")
+clear_previous_screenshots(true)
+reinstall_app(true)
+clean(true)
+skip_open_summary(true)
